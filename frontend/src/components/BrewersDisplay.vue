@@ -169,105 +169,113 @@
 
             </div>
 
+          </div>        
+            <!-- TEMPERATURE -->
+          <div class="data-group">
+
+            <div class="data-item" v-if="tap.dateBrewed">
+
+              <span>
+                BREWED
+              </span>
+
+              <strong>
+                {{ daysElapsed(tap.dateBrewed) }} days ago
+              </strong>
+
+
+            </div>
+
+
+            <div class="data-item" v-if="tap.dateKegged">
+            
+              <span>
+                KEGGED
+              </span>
+
+              <strong>
+                {{ daysElapsed(tap.dateKegged) }} days ago
+              </strong>
+
+            </div>
+
           </div>
+
+          
 
         </div>
 
+
+        <!-- BREWING DETAILS + DESCRIPTION -->
+        <div class="details-description-row">
 
         <!-- BREWING DETAILS -->
         <div class="brewing-details">
 
-          <div
+            <div
             v-if="tap.yeast"
             class="brewing-detail"
-          >
-            <span>
-              YEAST
-            </span>
+            >
+            <span>YEAST</span>
 
             <strong>
-              {{ tap.yeast }}
+                {{ tap.yeast }}
             </strong>
-          </div>
+            </div>
 
 
-          <div
+            <div
             v-if="tap.boil_hops"
             class="brewing-detail"
-          >
-            <span>
-              BOIL
-            </span>
+            >
+            <span>BOIL</span>
 
             <strong>
-              {{ tap.boil_hops }}
+                {{ tap.boil_hops }}
             </strong>
-          </div>
+            </div>
 
 
-          <div
+            <div
             v-if="tap.whirlpool_hops"
             class="brewing-detail"
-          >
-            <span>
-              WHIRLPOOL
-            </span>
+            >
+            <span>WHIRLPOOL</span>
 
             <strong>
-              {{ tap.whirlpool_hops }}
+                {{ tap.whirlpool_hops }}
             </strong>
-          </div>
+            </div>
 
 
-          <div
+            <div
             v-if="tap.cold_side_hops"
             class="brewing-detail"
-          >
-            <span>
-              COLD SIDE
-            </span>
+            >
+            <span>COLD SIDE</span>
 
             <strong>
-              {{ tap.cold_side_hops }}
+                {{ tap.cold_side_hops }}
             </strong>
-          </div>
+            </div>
 
         </div>
 
 
-        <!-- DATES -->
-        <div class="dates">
-
-          <div v-if="tap.dateBrewed">
-
-            <span>
-              Brewed
-            </span>
-
-            {{ daysElapsed(tap.dateBrewed) }} days ago
-
-          </div>
-
-
-          <div v-if="tap.dateKegged">
-
-            <span>
-              Kegged
-            </span>
-
-            {{ daysElapsed(tap.dateKegged) }} days ago
-
-          </div>
-
-        </div>
-
-
-        <!-- CURRENT DESCRIPTION -->
+        <!-- DESCRIPTION -->
         <div
-          v-if="tap.description"
-          class="description"
+        v-if="tap.description"
+        class="description"
         >
-          {{ tap.description }}
+        <div class="description-label">
+            DESCRIPTION
+        </div>
+
+        <div class="description-text">
+            {{ tap.description }}
+        </div>
+        </div>
+
         </div>
 
 
@@ -667,9 +675,14 @@ export default {
 
   display: grid;
 
-  grid-template-columns: 1fr 1fr;
+  grid-auto-flow: row;
+
+  grid-template-columns: 1fr 1fr 1fr;
 
   gap: 20px;
+
+  width: 100%;
+
 
   margin-bottom: 12px;
 
@@ -723,22 +736,27 @@ export default {
 /* =========================
    BREWING DETAILS
 ========================= */
+.details-description-row {
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+
+  gap: 20px;
+
+  margin-bottom: 12px;
+}
+
 
 .brewing-details {
-
   display: flex;
 
   flex-direction: column;
 
   gap: 5px;
-
-  margin-bottom: 12px;
-
 }
 
 
 .brewing-detail {
-
   display: flex;
 
   gap: 12px;
@@ -746,12 +764,10 @@ export default {
   font-size: 0.75rem;
 
   line-height: 1.25;
-
 }
 
 
 .brewing-detail span {
-
   flex: 0 0 75px;
 
   font-size: 0.65rem;
@@ -759,61 +775,36 @@ export default {
   font-weight: bold;
 
   opacity: 0.55;
-
 }
 
 
 .brewing-detail strong {
-
   font-weight: normal;
-
 }
 
-
-/* =========================
-   DATES
-========================= */
-
-.dates {
-
-  display: flex;
-
-  gap: 15px;
-
-  font-size: 0.75rem;
-
-  margin-bottom: 10px;
-
-  opacity: 0.7;
-
-}
-
-
-.dates span {
-
-  font-weight: bold;
-
-  margin-right: 4px;
-
-}
-
-
-/* =========================
-   DESCRIPTION
-========================= */
 
 .description {
-
-  margin-top: 8px;
-
-  margin-bottom: 10px;
+  margin: 0;
 
   font-size: 0.8rem;
 
   line-height: 1.35;
 
   white-space: pre-wrap;
+}
 
+.description-label {
+  font-size: 0.65rem;
+  font-weight: bold;
+  opacity: 0.55;
+  margin-bottom: 5px;
+}
+
+.description-text {
+  font-size: 0.8rem;
+  line-height: 1.35;
+  white-space: pre-wrap;
+  margin-left:5px;
 }
 
 
