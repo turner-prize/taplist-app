@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue'
 
 const kegs = ref([])
 
-const API_BASE = 'http://192.168.1.109:3000'
+const API_BASE = import.meta.env.VITE_API_BASE
 
 async function load() {
   kegs.value = await fetch(`${API_BASE}/api/kegs`)

@@ -4,7 +4,7 @@ import { ref, onMounted } from 'vue'
 const taps = ref([])
 
 async function loadTaps() {
-  const res = await fetch('http://192.168.1.40:3000/taps')
+  const res = await fetch(`${import.meta.env.VITE_API_BASE}/taps`)
   taps.value = await res.json()
 }
 
