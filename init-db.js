@@ -58,7 +58,8 @@ db.run(`
     og REAL,
     fg REAL,
     mash_temp REAL,
-    fermentation_temp REAL
+    fermentation_temp REAL,
+    image TEXT
   )
 `)
 

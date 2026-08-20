@@ -395,22 +395,26 @@ export default {
         </div>
 
 
-        <!-- NAME -->
+        <!-- Beer Image -->
+        <div class="beer-image">
 
-        <div
-          class="name"
-          :class="{
-            finished: tap.finished
-          }"
-          :style="
-            getOpacityStyle(tap)
-          "
-        >
-
-          {{ tap.beerName || 'Empty' }}
+          <img
+            v-if="tap.image"
+            :src="`${API_BASE}/uploads/${tap.image}`"
+            :alt="tap.beerName || 'Beer'"
+          />
 
         </div>
 
+
+        <!-- Name -->
+        <div 
+          class="name" 
+          :class="{ finished: tap.finished }"
+          :style="getOpacityStyle(tap)"
+        >
+          {{ tap.beerName || 'Empty' }}
+        </div>
 
         <!-- STYLE -->
 
@@ -692,15 +696,16 @@ export default {
 
   display: grid;
 
-  grid-template-columns:
-    6%
-    18%
-    10%
-    5%
-    8%
-    14%
-    12%
-    26%;
+grid-template-columns:
+  6%
+  10%
+  18%
+  10%
+  5%
+  8%
+  14%
+  12%
+  17%;
 
   border-bottom:
     1px solid #ccc;
@@ -920,6 +925,35 @@ export default {
   background:
     #e3f2fd;
 
+}
+
+/* ======================
+   Images
+====================== */
+
+.beer-image {
+  width: 160px;
+  height: 160px;
+
+  border-radius: 10px;
+
+  overflow: hidden;
+
+
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+}
+
+.beer-image img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
+
+  display: block;
 }
 
 </style>

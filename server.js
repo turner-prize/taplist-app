@@ -2,8 +2,59 @@ const express = require('express')
 const sqlite3 = require('sqlite3').verbose()
 const cors = require('cors')
 const path = require('path')
+const fs = require('fs')
+const multer = require('multer')
 
 const app = express()
+
+// ======================
+// IMAGE UPLOADS
+// ======================
+
+const uploadsDir = path.join(__dirname, 'uploads')
+
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true })
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir)
+  },
+
+  filename: (req, file, cb) => {
+
+    const ext = path.extname(file.originalname)
+
+    const filename =
+      `beer-${req.params.id}-${Date.now()}${ext}`
+
+    cb(null, filename)
+  }
+})
+
+const upload = multer({
+  storage,
+
+  limits: {
+    fileSize: 5 * 1024 * 1024
+  },
+
+  fileFilter: (req, file, cb) => {
+
+    const allowed = [
+      'image/jpeg',
+      'image/png',
+      'image/webp'
+    ]
+
+    if (allowed.includes(file.mimetype)) {
+      cb(null, true)
+    } else {
+      cb(new Error('Only JPG, PNG and WebP images are allowed'))
+    }
+  }
+})
 
 app.use(cors())
 app.use(express.json())
@@ -186,25 +237,203 @@ app.put('/beers/:id', (req, res) => {
   })
 })
 
+// ======================
+// BEER IMAGE
+// ======================
+
+// Upload beer image
+app.post(
+  '/beers/:id/image',
+  upload.single('image'),
+  (req, res) => {
+
+    const beerId = req.params.id
+
+    if (!req.file) {
+      return res.status(400).json({
+        error: 'No image uploaded'
+      })
+    }
+
+    // Get existing image so we can remove it
+    db.get(
+      `SELECT image FROM beers WHERE id=?`,
+      [beerId],
+      (err, beer) => {
+
+        if (err) {
+          return res.status(500).send(err)
+        }
+
+        if (!beer) {
+          fs.unlink(
+            req.file.path,
+            () => {}
+          )
+
+          return res.status(404).json({
+            error: 'Beer not found'
+          })
+        }
+
+        // Delete previous image
+        if (beer.image) {
+
+          const oldImage =
+            path.join(
+              uploadsDir,
+              beer.image
+            )
+
+          if (fs.existsSync(oldImage)) {
+            fs.unlink(
+              oldImage,
+              () => {}
+            )
+          }
+        }
+
+        // Store filename
+        db.run(
+          `UPDATE beers SET image=? WHERE id=?`,
+          [
+            req.file.filename,
+            beerId
+          ],
+          err => {
+
+            if (err) {
+              return res.status(500).send(err)
+            }
+
+            res.json({
+              success: true,
+              image: req.file.filename
+            })
+
+          }
+        )
+
+      }
+    )
+  }
+)
+
+// Remove beer image
+app.delete('/beers/:id/image', (req, res) => {
+
+  const beerId = req.params.id
+
+  db.get(
+    `SELECT image FROM beers WHERE id=?`,
+    [beerId],
+    (err, beer) => {
+
+      if (err) {
+        return res.status(500).send(err)
+      }
+
+      if (!beer) {
+        return res.status(404).json({
+          error: 'Beer not found'
+        })
+      }
+
+      if (beer.image) {
+
+        const imagePath =
+          path.join(
+            uploadsDir,
+            beer.image
+          )
+
+        if (fs.existsSync(imagePath)) {
+          fs.unlink(
+            imagePath,
+            () => {}
+          )
+        }
+      }
+
+      db.run(
+        `UPDATE beers SET image=NULL WHERE id=?`,
+        [beerId],
+        err => {
+
+          if (err) {
+            return res.status(500).send(err)
+          }
+
+          res.json({
+            success: true
+          })
+
+        }
+      )
+
+    }
+  )
+})
 // DELETE beer
 app.delete('/beers/:id', (req, res) => {
+
   const id = req.params.id
 
-  // Remove from taps first
-  db.run(
-    `UPDATE taps SET beer_id=NULL WHERE beer_id=?`,
-    [id]
-  )
-
-  db.run(
-    `DELETE FROM beers WHERE id=?`,
+  db.get(
+    `SELECT image FROM beers WHERE id=?`,
     [id],
-    err => {
-      if (err) return res.status(500).send(err)
+    (err, beer) => {
 
-      res.json({
-        success: true
-      })
+      if (err) {
+        return res.status(500).send(err)
+      }
+
+      // Remove image file
+      if (beer?.image) {
+
+        const imagePath =
+          path.join(
+            uploadsDir,
+            beer.image
+          )
+
+        if (fs.existsSync(imagePath)) {
+          fs.unlink(
+            imagePath,
+            () => {}
+          )
+        }
+      }
+
+      // Remove from taps first
+      db.run(
+        `UPDATE taps SET beer_id=NULL WHERE beer_id=?`,
+        [id],
+        err => {
+
+          if (err) {
+            return res.status(500).send(err)
+          }
+
+          db.run(
+            `DELETE FROM beers WHERE id=?`,
+            [id],
+            err => {
+
+              if (err) {
+                return res.status(500).send(err)
+              }
+
+              res.json({
+                success: true
+              })
+
+            }
+          )
+
+        }
+      )
+
     }
   )
 })
@@ -318,7 +547,8 @@ app.get('/taps', (req, res) => {
       beers.yeast,
       beers.boil_hops,
       beers.whirlpool_hops,
-      beers.cold_side_hops
+      beers.cold_side_hops,
+      beers.image
     FROM taps
     LEFT JOIN beers ON taps.beer_id = beers.id
     ORDER BY taps.id
@@ -426,9 +656,17 @@ app.put('/api/kegs/:id', (req, res) => {
   })
 })
 
+
+
 // ======================
 // FRONTEND
 // ======================
+
+// Serve beer images
+app.use(
+  '/uploads',
+  express.static(uploadsDir)
+)
 
 // Serve built Vue app
 app.use(

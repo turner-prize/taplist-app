@@ -22,6 +22,9 @@ const tastingNotes = ref([])
 const newNoteDate = ref('')
 const newNoteText = ref('')
 
+const selectedImage = ref(null)
+const imagePreview = ref(null)
+
 const API_BASE = import.meta.env.VITE_API_BASE
 
 
@@ -166,13 +169,18 @@ async function clearTap() {
 // BEER MANAGEMENT
 // ======================
 
-// Save beer
 async function saveBeer(beer) {
 
-  if (beer.id) {
+  let beerId = beer.id
+
+  // ======================
+  // SAVE BEER
+  // ======================
+
+  if (beerId) {
 
     await fetch(
-      `${API_BASE}/beers/${beer.id}`,
+      `${API_BASE}/beers/${beerId}`,
       {
         method: 'PUT',
         headers: {
@@ -184,7 +192,7 @@ async function saveBeer(beer) {
 
   } else {
 
-    await fetch(
+    const response = await fetch(
       `${API_BASE}/beers`,
       {
         method: 'POST',
@@ -194,11 +202,46 @@ async function saveBeer(beer) {
         body: JSON.stringify(beer)
       }
     )
+
+    const data = await response.json()
+
+    beerId = data.id
   }
+
+
+  // ======================
+  // UPLOAD IMAGE
+  // ======================
+
+  if (selectedImage.value && beerId) {
+
+    const formData = new FormData()
+
+    formData.append(
+      'image',
+      selectedImage.value
+    )
+
+    await fetch(
+      `${API_BASE}/beers/${beerId}/image`,
+      {
+        method: 'POST',
+        body: formData
+      }
+    )
+  }
+
+
+  // ======================
+  // CLOSE
+  // ======================
+
+  selectedImage.value = null
+  imagePreview.value = null
 
   showModal.value = false
 
-  load()
+  await load()
 }
 
 
@@ -229,6 +272,8 @@ function newBeer() {
   }
 
   showModal.value = true
+  selectedImage.value = null
+  imagePreview.value = null
 }
 
 
@@ -239,7 +284,49 @@ function editBeer(beer) {
     ...beer
   }
 
+  selectedImage.value = null
+
+  imagePreview.value =
+    beer.image
+      ? `${API_BASE}/uploads/${beer.image}`
+      : null
+
   showModal.value = true
+}
+
+function selectImage(event) {
+
+  const file =
+    event.target.files?.[0]
+
+  if (!file) return
+
+  selectedImage.value = file
+
+  imagePreview.value =
+    URL.createObjectURL(file)
+}
+
+async function removeBeerImage() {
+
+  if (!editingBeer.value?.id) {
+
+    selectedImage.value = null
+    imagePreview.value = null
+
+    return
+  }
+
+  await fetch(
+    `${API_BASE}/beers/${editingBeer.value.id}/image`,
+    {
+      method: 'DELETE'
+    }
+  )
+
+  editingBeer.value.image = null
+  selectedImage.value = null
+  imagePreview.value = null
 }
 
 
@@ -721,6 +808,37 @@ onMounted(() => {
               />
 
             </div>
+
+            <div class="image-upload">
+
+  <label>Beer Image</label>
+
+  <div
+    v-if="imagePreview"
+    class="image-preview"
+  >
+    <img
+      :src="imagePreview"
+      alt="Beer image"
+    />
+  </div>
+
+  <input
+    type="file"
+    accept="image/jpeg,image/png,image/webp"
+    @change="selectImage"
+  />
+
+  <button
+    v-if="editingBeer.image || imagePreview"
+    type="button"
+    class="remove-image-btn"
+    @click="removeBeerImage"
+  >
+    Remove Image
+  </button>
+
+</div>
 
 
             <div>
@@ -2084,6 +2202,53 @@ textarea {
   margin-top: 20px;
 }
 
+.image-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.image-preview {
+  width: 180px;
+  height: 180px;
+
+  border-radius: 12px;
+
+  overflow: hidden;
+
+  background: #f3f3f3;
+
+  border: 1px solid #ddd;
+}
+
+.image-preview img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+
+  display: block;
+}
+
+.remove-image-btn {
+  align-self: flex-start;
+
+  border: none;
+  border-radius: 8px;
+
+  padding: 8px 12px;
+
+  background: #ffebee;
+  color: #c62828;
+
+  font-weight: bold;
+
+  cursor: pointer;
+}
+
+.remove-image-btn:hover {
+  background: #ffcdd2;
+}
 
 /* ======================
    MOBILE
