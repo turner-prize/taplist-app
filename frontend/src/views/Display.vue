@@ -503,102 +503,76 @@ export default {
     </div>
 
 
-    <!-- ======================
-         CONDITIONING
-    ====================== -->
+ <!-- BREWING STAGES -->
+<div
+  v-if="conditioning.length || fermenting.length"
+  class="brewing-stages"
+>
 
-    <div
-      class="section conditioning"
-      v-if="conditioning.length"
-    >
+  <!-- CONDITIONING -->
+  <div
+    v-if="conditioning.length"
+    class="section conditioning"
+  >
+    <h2>Conditioning</h2>
 
-      <h2>
-        Conditioning
-      </h2>
+    <div class="card-row">
 
-      <div class="card-row">
+      <div
+        v-for="beer in conditioning"
+        :key="beer.id"
+        class="card"
+      >
+        <strong>{{ beer.name }}</strong>
 
-        <div
-          v-for="beer in conditioning"
-          :key="beer.id"
-          class="card"
-        >
+        <div>
+          {{ beer.style }}
+        </div>
 
-          <strong>
-            {{ beer.name }}
-          </strong>
+        <div v-if="beer.kegNumber">
+          Keg {{ beer.kegNumber }}
+        </div>
 
-          <div>
-            {{ beer.style }}
-          </div>
-
-          <div v-if="beer.kegNumber">
-            Keg {{ beer.kegNumber }}
-          </div>
-
-          <div v-if="beer.dateKegged">
-
-            {{
-              daysElapsed(
-                beer.dateKegged
-              )
-            }}
-            days conditioning
-
-          </div>
-
+        <div v-if="beer.dateKegged">
+          {{ daysElapsed(beer.dateKegged) }} days conditioning
         </div>
 
       </div>
 
     </div>
+  </div>
 
 
-    <!-- ======================
-         FERMENTING
-    ====================== -->
+  <!-- FERMENTING -->
+  <div
+    v-if="fermenting.length"
+    class="section fermenting"
+  >
+    <h2>Fermenting</h2>
 
-    <div
-      class="section fermenting"
-      v-if="fermenting.length"
-    >
+    <div class="card-row">
 
-      <h2>
-        Fermenting
-      </h2>
+      <div
+        v-for="beer in fermenting"
+        :key="beer.id"
+        class="card"
+      >
+        <strong>{{ beer.name }}</strong>
 
-      <div class="card-row">
+        <div>
+          {{ beer.style }}
+        </div>
 
-        <div
-          v-for="beer in fermenting"
-          :key="beer.id"
-          class="card"
-        >
-
-          <strong>
-            {{ beer.name }}
-          </strong>
-
-          <div>
-            {{ beer.style }}
-          </div>
-
-          <div v-if="beer.dateBrewed">
-
-            {{
-              daysElapsed(
-                beer.dateBrewed
-              )
-            }}
-            days fermenting
-
-          </div>
-
+        <div v-if="beer.dateBrewed">
+          {{ daysElapsed(beer.dateBrewed) }} days fermenting
         </div>
 
       </div>
 
     </div>
+  </div>
+
+</div>
 
   </div>
 
@@ -856,75 +830,75 @@ grid-template-columns:
   color: #888;
 
 }
+/* =========================
+   BREWING STAGES
+========================= */
 
+.brewing-stages {
+  display: grid;
 
-/* ======================
-   SECTIONS
-====================== */
+  grid-template-columns: 1fr 1fr;
 
-.section {
+  gap: 30px;
 
   margin-top: 20px;
 
   max-height: 20%;
-
 }
 
+
+/* =========================
+   SECTIONS
+========================= */
+
+.section {
+  min-width: 0;
+}
 
 .section h2 {
-
   font-size: 1.2em;
 
-  margin-bottom: 10px;
-
+  margin: 0 0 10px;
 }
 
 
-/* ======================
+/* =========================
    CARDS
-====================== */
+========================= */
 
 .card-row {
-
   display: flex;
 
   gap: 10px;
 
+  overflow-x: auto;
 }
 
 
 .card {
-
   padding: 10px;
 
   border-radius: 8px;
 
   min-width: 140px;
-
 }
 
 
-/* ======================
-   FERMENTING
-====================== */
-
-.fermenting .card {
-
-  background:
-    #e8f5e9;
-
-}
-
-
-/* ======================
+/* =========================
    CONDITIONING
-====================== */
+========================= */
 
 .conditioning .card {
+  background: #e3f2fd;
+}
 
-  background:
-    #e3f2fd;
 
+/* =========================
+   FERMENTING
+========================= */
+
+.fermenting .card {
+  background: #e8f5e9;
 }
 
 /* ======================
