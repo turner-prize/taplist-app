@@ -1083,8 +1083,8 @@ onMounted(() => {
                 <input
                   type="checkbox"
                   v-model="editingBeer.fermenting"
-                  true-value="1"
-                  false-value="0"
+                  :true-value="1"
+                  :false-value="0"
                 />
 
                 Fermenting
@@ -1097,8 +1097,8 @@ onMounted(() => {
                 <input
                   type="checkbox"
                   v-model="editingBeer.conditioning"
-                  true-value="1"
-                  false-value="0"
+                  :true-value="1"
+                  :false-value="0"
                 />
 
                 Conditioning
