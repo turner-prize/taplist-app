@@ -4,6 +4,7 @@ import { ref, onMounted, computed } from 'vue'
 const beers = ref([])
 const taps = ref([])
 const selectedTap = ref(null)
+const kegs = ref([])
 
 const showModal = ref(false)
 const editingBeer = ref(null)
@@ -104,6 +105,14 @@ async function setDisplayMode(mode) {
 // LOAD DATA
 // ======================
 
+
+async function loadKegs() {
+  kegs.value = await fetch(
+    `${API_BASE}/api/kegs`
+  ).then(r => r.json())
+}
+
+
 async function load() {
   beers.value = await fetch(
     `${API_BASE}/beers`
@@ -112,6 +121,9 @@ async function load() {
   taps.value = await fetch(
     `${API_BASE}/taps`
   ).then(r => r.json())
+
+  await loadKegs()
+
 }
 
 
@@ -162,6 +174,65 @@ async function clearTap() {
   selectedTap.value = null
 
   load()
+}
+
+// ======================
+// KEG MANAGEMENT
+// ======================
+
+async function addKeg() {
+  const response = await fetch(
+    `${API_BASE}/api/kegs`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
+  )
+
+  if (!response.ok) {
+    alert('Unable to add keg')
+    return
+  }
+
+  await loadKegs()
+}
+
+async function removeKeg(keg) {
+  if (keg.beerName) {
+    alert(
+      `Keg ${keg.id} is currently assigned to "${keg.beerName}". Release the keg first.`
+    )
+    return
+  }
+
+  if (
+    !confirm(
+      `Remove Keg ${keg.id}?`
+    )
+  ) {
+    return
+  }
+
+  const response = await fetch(
+    `${API_BASE}/api/kegs/${keg.id}`,
+    {
+      method: 'DELETE'
+    }
+  )
+
+  if (!response.ok) {
+    const data = await response.json()
+
+    alert(
+      data.error || 'Unable to remove keg'
+    )
+
+    return
+  }
+
+  await loadKegs()
 }
 
 
@@ -651,6 +722,79 @@ onMounted(() => {
       Clear Tap {{ selectedTap }}
     </button>
 
+<!-- ======================
+     KEG MANAGEMENT
+====================== -->
+
+<div class="keg-management">
+
+  <div class="section-header">
+    <div>
+      <h2>Kegs</h2>
+      <p>Manage your physical kegs.</p>
+    </div>
+
+    <button
+      class="add-keg-btn"
+      @click="addKeg"
+    >
+      + Add Keg
+    </button>
+  </div>
+
+  <div class="keg-list">
+
+    <div
+      v-for="keg in kegs"
+      :key="keg.id"
+      class="keg-card"
+      :class="{
+        occupied: keg.beerName
+      }"
+    >
+
+      <div class="keg-info">
+
+        <div class="keg-number">
+          Keg {{ keg.id }}
+        </div>
+
+        <div
+          v-if="keg.beerName"
+          class="keg-beer"
+        >
+          {{ keg.beerName }}
+        </div>
+
+        <div
+          v-if="keg.tapNumber"
+          class="keg-tap"
+        >
+          Tap {{ keg.tapNumber }}
+        </div>
+
+        <div
+          v-else
+          class="keg-empty"
+        >
+          Empty
+        </div>
+
+      </div>
+
+      <button
+        class="remove-keg-btn"
+        @click="removeKeg(keg)"
+      >
+        Remove
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
 
     <!-- ======================
          SEARCH
@@ -948,8 +1092,7 @@ onMounted(() => {
                 v-model="editingBeer.kegNumber"
                 type="number"
                 min="1"
-                max="6"
-                placeholder="1-6"
+                placeholder="Keg Number"
               />
 
             </div>
@@ -2251,6 +2394,116 @@ textarea {
 }
 
 /* ======================
+   KEG MANAGEMENT
+====================== */
+
+.keg-management {
+  background: white;
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 20px;
+  box-shadow:
+    0 2px 8px rgba(0,0,0,0.08);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.section-header h2 {
+  margin: 0 0 4px;
+  font-size: 1.3rem;
+}
+
+.section-header p {
+  margin: 0;
+  color: #777;
+  font-size: 0.9rem;
+}
+
+.add-keg-btn {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: #2e7d32;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.add-keg-btn:hover {
+  background: #256b29;
+}
+
+.keg-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.keg-card {
+  background: #f5f5f5;
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.keg-card.occupied {
+  background: #eef5ff;
+}
+
+.keg-info {
+  min-width: 0;
+}
+
+.keg-number {
+  font-weight: bold;
+  font-size: 1rem;
+  margin-bottom: 5px;
+}
+
+.keg-beer {
+  font-size: 0.95rem;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.keg-tap {
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 3px;
+}
+
+.keg-empty {
+  font-size: 0.85rem;
+  color: #777;
+}
+
+.remove-keg-btn {
+  flex-shrink: 0;
+  border: none;
+  border-radius: 7px;
+  padding: 8px 10px;
+  background: #ffebee;
+  color: #c62828;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.remove-keg-btn:hover {
+  background: #ffcdd2;
+}
+
+/* ======================
    MOBILE
 ====================== */
 
@@ -2344,6 +2597,20 @@ textarea {
   .tasting-note-actions {
     flex-shrink: 0;
   }
+
+    .keg-list {
+    grid-template-columns: 1fr;
+  }
+
+  .section-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .add-keg-btn {
+    width: 100%;
+  }
+
 
 }
 

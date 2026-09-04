@@ -656,6 +656,75 @@ app.put('/api/kegs/:id', (req, res) => {
   })
 })
 
+// ADD keg
+app.post('/api/kegs', (req, res) => {
+  db.run(`
+    INSERT INTO kegs (
+      dirty,
+      clean,
+      sanitised,
+      pressurised,
+      lastDeepCleanDate
+    )
+    VALUES (0, 0, 0, 0, NULL)
+  `, function (err) {
+
+    if (err) {
+      console.error('Error adding keg:', err)
+      return res.status(500).send(err)
+    }
+
+    res.json({
+      success: true,
+      id: this.lastID
+    })
+  })
+})
+
+// DELETE keg
+app.delete('/api/kegs/:id', (req, res) => {
+  const kegId = req.params.id
+
+  // Check whether a beer is currently assigned to this keg
+  db.get(`
+    SELECT id, name
+    FROM beers
+    WHERE kegNumber=?
+  `, [kegId], (err, beer) => {
+
+    if (err) {
+      return res.status(500).send(err)
+    }
+
+    if (beer) {
+      return res.status(400).json({
+        error: `Keg ${kegId} is currently assigned to "${beer.name}". Release the keg first.`
+      })
+    }
+
+    // Safe to delete
+    db.run(`
+      DELETE FROM kegs
+      WHERE id=?
+    `, [kegId], function (err) {
+
+      if (err) {
+        return res.status(500).send(err)
+      }
+
+      if (this.changes === 0) {
+        return res.status(404).json({
+          error: 'Keg not found'
+        })
+      }
+
+      res.json({
+        success: true
+      })
+    })
+  })
+})
+
 
 
 // ======================
