@@ -6,7 +6,10 @@ const taps = ref([])
 const selectedTap = ref(null)
 const kegs = ref([])
 
+
+
 const showModal = ref(false)
+const showKegManagement = ref(false)
 const editingBeer = ref(null)
 
 const search = ref('')
@@ -722,79 +725,109 @@ onMounted(() => {
       Clear Tap {{ selectedTap }}
     </button>
 
-<!-- ======================
+
+    <!-- ======================
      KEG MANAGEMENT
 ====================== -->
 
 <div class="keg-management">
 
-  <div class="section-header">
-    <div>
-      <h2>Kegs</h2>
-      <p>Manage your physical kegs.</p>
-    </div>
+<div class="keg-management-header">
+  <button
+    class="keg-management-toggle"
+    @click="showKegManagement = !showKegManagement"
+  >
+    <span>🛢️ Keg Management</span>
 
-    <button
-      class="add-keg-btn"
-      @click="addKeg"
-    >
-      + Add Keg
-    </button>
-  </div>
+    <span class="keg-expand-icon">
+      {{ showKegManagement ? '−' : '+' }}
+    </span>
+  </button>
 
-  <div class="keg-list">
+  <button
+    class="keg-page-btn"
+    @click="$router.push('/kegs')"
+  >
+    Manage Kegs →
+  </button>
+</div>
 
-    <div
-      v-for="keg in kegs"
-      :key="keg.id"
-      class="keg-card"
-      :class="{
-        occupied: keg.beerName
-      }"
-    >
+  <div
+    v-if="showKegManagement"
+    class="keg-management-content"
+  >
 
-      <div class="keg-info">
+    <div class="keg-management-top">
 
-        <div class="keg-number">
-          Keg {{ keg.id }}
-        </div>
-
-        <div
-          v-if="keg.beerName"
-          class="keg-beer"
-        >
-          {{ keg.beerName }}
-        </div>
-
-        <div
-          v-if="keg.tapNumber"
-          class="keg-tap"
-        >
-          Tap {{ keg.tapNumber }}
-        </div>
-
-        <div
-          v-else
-          class="keg-empty"
-        >
-          Empty
-        </div>
-
+      <div>
+        <p>
+          Manage your physical kegs.
+        </p>
       </div>
 
       <button
-        class="remove-keg-btn"
-        @click="removeKeg(keg)"
+        class="add-keg-btn"
+        @click="addKeg"
       >
-        Remove
+        + Add Keg
       </button>
+
+    </div>
+
+    <div class="keg-list">
+
+      <div
+        v-for="keg in kegs"
+        :key="keg.id"
+        class="keg-card"
+        :class="{
+          occupied: keg.beerName
+        }"
+      >
+
+        <div class="keg-info">
+
+          <div class="keg-number">
+            Keg {{ keg.id }}
+          </div>
+
+          <div
+            v-if="keg.beerName"
+            class="keg-beer"
+          >
+            {{ keg.beerName }}
+          </div>
+
+          <div
+            v-if="keg.tapNumber"
+            class="keg-tap"
+          >
+            Tap {{ keg.tapNumber }}
+          </div>
+
+          <div
+            v-else
+            class="keg-empty"
+          >
+            Not on Tap
+          </div>
+
+        </div>
+
+        <button
+          class="remove-keg-btn"
+          @click="removeKeg(keg)"
+        >
+          Remove
+        </button>
+
+      </div>
 
     </div>
 
   </div>
 
 </div>
-
 
     <!-- ======================
          SEARCH
@@ -2400,13 +2433,54 @@ textarea {
 .keg-management {
   background: white;
   border-radius: 12px;
-  padding: 18px;
   margin-bottom: 20px;
   box-shadow:
     0 2px 8px rgba(0,0,0,0.08);
+  overflow: hidden;
 }
 
-.section-header {
+/* Collapsed / expanded header */
+
+.keg-management-header {
+  width: 100%;
+  border: none;
+  background: white;
+  padding: 16px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #333;
+  cursor: pointer;
+  text-align: left;
+}
+
+.keg-management-header:hover {
+  background: #f8f8f8;
+}
+
+.keg-expand-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #eeeeee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  line-height: 1;
+  color: #555;
+}
+
+/* Expanded content */
+
+.keg-management-content {
+  border-top: 1px solid #eee;
+  padding: 18px;
+}
+
+.keg-management-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -2414,12 +2488,7 @@ textarea {
   margin-bottom: 15px;
 }
 
-.section-header h2 {
-  margin: 0 0 4px;
-  font-size: 1.3rem;
-}
-
-.section-header p {
+.keg-management-top p {
   margin: 0;
   color: #777;
   font-size: 0.9rem;
@@ -2433,6 +2502,7 @@ textarea {
   color: white;
   font-weight: bold;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .add-keg-btn:hover {
@@ -2610,6 +2680,11 @@ textarea {
   .add-keg-btn {
     width: 100%;
   }
+
+  .keg-management-top {
+  flex-direction: column;
+  align-items: stretch;
+}
 
 
 }
