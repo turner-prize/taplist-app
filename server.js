@@ -638,7 +638,8 @@ app.put('/api/kegs/:id', (req, res) => {
       clean=?,
       sanitised=?,
       pressurised=?,
-      lastDeepCleanDate=?
+      lastDeepCleanDate=?,
+      lastOringChangeDate=?
     WHERE id=?
   `, [
     k.dirty ? 1 : 0,
@@ -646,6 +647,7 @@ app.put('/api/kegs/:id', (req, res) => {
     k.sanitised ? 1 : 0,
     k.pressurised ? 1 : 0,
     k.lastDeepCleanDate,
+    k.lastOringChangeDate,
     req.params.id
   ], err => {
     if (err) return res.status(500).send(err)
