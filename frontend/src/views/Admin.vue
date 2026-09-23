@@ -732,25 +732,29 @@ onMounted(() => {
 
 <div class="keg-management">
 
-<div class="keg-management-header">
-  <button
-    class="keg-management-toggle"
-    @click="showKegManagement = !showKegManagement"
-  >
-    <span>🛢️ Keg Management</span>
+  <div class="keg-management-header">
 
-    <span class="keg-expand-icon">
-      {{ showKegManagement ? '−' : '+' }}
-    </span>
-  </button>
+    <button
+      class="keg-management-toggle"
+      @click="showKegManagement = !showKegManagement"
+    >
+      <span class="keg-management-title">
+        🛢️ Keg Management
+      </span>
 
-  <button
-    class="keg-page-btn"
-    @click="$router.push('/kegs')"
-  >
-    Manage Kegs →
-  </button>
-</div>
+      <span class="keg-expand-icon">
+        {{ showKegManagement ? '−' : '+' }}
+      </span>
+    </button>
+
+    <button
+      class="keg-page-btn"
+      @click="$router.push('/kegs')"
+    >
+      Manage Kegs →
+    </button>
+
+  </div>
 
   <div
     v-if="showKegManagement"
@@ -758,10 +762,10 @@ onMounted(() => {
   >
 
     <div class="keg-management-top">
-
       <div>
+        <h3>Physical Kegs</h3>
         <p>
-          Manage your physical kegs.
+          Manage the kegs available for your beers.
         </p>
       </div>
 
@@ -771,7 +775,6 @@ onMounted(() => {
       >
         + Add Keg
       </button>
-
     </div>
 
     <div class="keg-list">
@@ -780,9 +783,7 @@ onMounted(() => {
         v-for="keg in kegs"
         :key="keg.id"
         class="keg-card"
-        :class="{
-          occupied: keg.beerName
-        }"
+        :class="{ occupied: keg.beerName }"
       >
 
         <div class="keg-info">
@@ -2426,107 +2427,220 @@ textarea {
   background: #ffcdd2;
 }
 
-/* ======================
+/* =========================
    KEG MANAGEMENT
-====================== */
+   ========================= */
 
 .keg-management {
-  background: white;
-  border-radius: 12px;
-  margin-bottom: 20px;
+  width: 100%;
+  margin: 18px 0 20px;
+
+  background: #ffffff;
+  border-radius: 14px;
+
+  border: 1px solid #e5e5e5;
+
   box-shadow:
-    0 2px 8px rgba(0,0,0,0.08);
+    0 3px 10px rgba(0, 0, 0, 0.06);
+
   overflow: hidden;
 }
 
-/* Collapsed / expanded header */
+/* Header */
 
 .keg-management-header {
-  width: 100%;
-  border: none;
-  background: white;
-  padding: 16px 18px;
   display: flex;
+  align-items: stretch;
   justify-content: space-between;
-  align-items: center;
-  font-size: 1rem;
-  font-weight: bold;
-  color: #333;
-  cursor: pointer;
-  text-align: left;
+
+  width: 100%;
+  min-height: 64px;
+
+  background: #fafafa;
+
+  border-bottom: 1px solid #e5e5e5;
+
+  box-sizing: border-box;
 }
 
-.keg-management-header:hover {
-  background: #f8f8f8;
+.keg-management-toggle {
+  flex: 1;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 16px 20px;
+
+  border: none;
+  background: transparent;
+
+  color: #111;
+
+  font-size: 1rem;
+  font-weight: 600;
+
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.keg-management-toggle:hover {
+  background: #f3f3f3;
+}
+
+.keg-management-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .keg-expand-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #eeeeee;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.3rem;
-  line-height: 1;
-  color: #555;
+
+  width: 28px;
+  height: 28px;
+
+  border-radius: 50%;
+
+  background: #e9e9e9;
+
+  font-size: 1.2rem;
+  font-weight: normal;
+}
+
+/* Manage Kegs button */
+
+.keg-page-btn {
+  align-self: center;
+
+  margin: 0 16px 0 10px;
+  padding: 9px 15px;
+
+  border: 1px solid #d0d0d0;
+  border-radius: 8px;
+
+  background: white;
+  color: #333;
+
+  font-size: 0.9rem;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  white-space: nowrap;
+
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.keg-page-btn:hover {
+  background: #f2f2f2;
+  border-color: #bbb;
+
+  transform: translateY(-1px);
 }
 
 /* Expanded content */
 
 .keg-management-content {
-  border-top: 1px solid #eee;
-  padding: 18px;
+  padding: 20px;
 }
+
+/* Top row */
 
 .keg-management-top {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 15px;
-  margin-bottom: 15px;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  margin-bottom: 18px;
+}
+
+.keg-management-top h3 {
+  margin: 0 0 4px;
+
+  font-size: 1.05rem;
 }
 
 .keg-management-top p {
   margin: 0;
-  color: #777;
+
+  color: #666;
+
   font-size: 0.9rem;
 }
 
+/* Add keg */
+
 .add-keg-btn {
+  flex-shrink: 0;
+
+  padding: 10px 16px;
+
   border: none;
   border-radius: 8px;
-  padding: 10px 14px;
-  background: #2e7d32;
-  color: white;
-  font-weight: bold;
+
+  background: #e8f5e9;
+  color: #2e7d32;
+
+  font-size: 0.9rem;
+  font-weight: 600;
+
   cursor: pointer;
-  white-space: nowrap;
+
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease;
 }
 
 .add-keg-btn:hover {
-  background: #256b29;
+  background: #d7eed9;
+  transform: translateY(-1px);
 }
+
+/* Keg list */
 
 .keg-list {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+
+  grid-template-columns:
+    repeat(auto-fill, minmax(220px, 1fr));
+
   gap: 12px;
 }
 
+/* Individual keg */
+
 .keg-card {
-  background: #f5f5f5;
-  border-radius: 10px;
-  padding: 14px;
   display: flex;
-  justify-content: space-between;
+
   align-items: center;
+  justify-content: space-between;
+
   gap: 12px;
+
+  min-width: 0;
+
+  padding: 14px 16px;
+
+  background: #f8f8f8;
+
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+
+  box-sizing: border-box;
 }
 
 .keg-card.occupied {
-  background: #eef5ff;
+  background: #f7fbff;
+  border-color: #d9eaf7;
 }
 
 .keg-info {
@@ -2534,43 +2648,106 @@ textarea {
 }
 
 .keg-number {
-  font-weight: bold;
-  font-size: 1rem;
-  margin-bottom: 5px;
+  margin-bottom: 4px;
+
+  font-weight: 700;
 }
 
 .keg-beer {
-  font-size: 0.95rem;
-  color: #333;
-  white-space: nowrap;
   overflow: hidden;
+
+  color: #333;
+
+  font-size: 0.9rem;
+  font-weight: 600;
+
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .keg-tap {
-  font-size: 0.8rem;
-  color: #666;
   margin-top: 3px;
+
+  color: #1976d2;
+
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
 .keg-empty {
+  color: #888;
+
   font-size: 0.85rem;
-  color: #777;
 }
+
+/* Remove */
 
 .remove-keg-btn {
   flex-shrink: 0;
-  border: none;
+
+  padding: 7px 10px;
+
+  border: 1px solid #f0caca;
   border-radius: 7px;
-  padding: 8px 10px;
-  background: #ffebee;
+
+  background: #fff5f5;
   color: #c62828;
-  font-weight: bold;
+
+  font-size: 0.8rem;
+  font-weight: 600;
+
   cursor: pointer;
+
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .remove-keg-btn:hover {
-  background: #ffcdd2;
+  background: #ffebee;
+  border-color: #e8a5a5;
+}
+
+/* =========================
+   MOBILE
+   ========================= */
+
+@media (max-width: 600px) {
+
+  .keg-management-header {
+    min-height: auto;
+  }
+
+  .keg-management-toggle {
+    padding: 14px;
+  }
+
+  .keg-page-btn {
+    margin: 0 10px 0 5px;
+    padding: 8px 10px;
+
+    font-size: 0.8rem;
+  }
+
+  .keg-management-content {
+    padding: 15px;
+  }
+
+  .keg-management-top {
+    flex-direction: column;
+    align-items: stretch;
+
+    gap: 12px;
+  }
+
+  .add-keg-btn {
+    width: 100%;
+  }
+
+  .keg-list {
+    grid-template-columns: 1fr;
+  }
+
 }
 
 /* ======================
