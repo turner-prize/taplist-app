@@ -727,6 +727,97 @@ app.delete('/api/kegs/:id', (req, res) => {
   })
 })
 
+app.post('/api/kegs/:id/leak-test/start', (req, res) => {
+  const { startPsi } = req.body
+
+  if (startPsi === undefined || startPsi === null || startPsi === '') {
+    return res.status(400).json({ error: 'Starting PSI is required' })
+  }
+
+  const startedAt = new Date().toISOString()
+
+  db.run(`
+    UPDATE kegs
+    SET
+      leakTestStartedAt=?,
+      leakTestStartPsi=?
+    WHERE id=?
+  `, [
+    startedAt,
+    Number(startPsi),
+    req.params.id
+  ], err => {
+    if (err) return res.status(500).send(err)
+
+    res.json({
+      success: true,
+      startedAt,
+      startPsi: Number(startPsi)
+    })
+  })
+})
+
+app.post('/api/kegs/:id/leak-test/end', (req, res) => {
+  const { endPsi } = req.body
+
+  if (endPsi === undefined || endPsi === null || endPsi === '') {
+    return res.status(400).json({ error: 'Final PSI is required' })
+  }
+
+  db.get(`
+    SELECT leakTestStartedAt, leakTestStartPsi
+    FROM kegs
+    WHERE id=?
+  `, [req.params.id], (err, keg) => {
+    if (err) return res.status(500).send(err)
+
+    if (!keg) {
+      return res.status(404).json({ error: 'Keg not found' })
+    }
+
+    if (!keg.leakTestStartedAt || keg.leakTestStartPsi === null) {
+      return res.status(400).json({ error: 'No leak test is currently running' })
+    }
+
+    const startedAt = new Date(keg.leakTestStartedAt)
+    const endedAt = new Date()
+
+    const durationMinutes = Math.max(
+      0,
+      Math.round((endedAt - startedAt) / 60000)
+    )
+
+    db.run(`
+      UPDATE kegs
+      SET
+        lastLeakTestDate=?,
+        lastLeakTestStartPsi=?,
+        lastLeakTestEndPsi=?,
+        lastLeakTestDurationMinutes=?,
+        leakTestStartedAt=NULL,
+        leakTestStartPsi=NULL
+      WHERE id=?
+    `, [
+      endedAt.toISOString(),
+      keg.leakTestStartPsi,
+      Number(endPsi),
+      durationMinutes,
+      req.params.id
+    ], err => {
+      if (err) return res.status(500).send(err)
+
+      res.json({
+        success: true,
+        startedAt: keg.leakTestStartedAt,
+        endedAt: endedAt.toISOString(),
+        startPsi: keg.leakTestStartPsi,
+        endPsi: Number(endPsi),
+        durationMinutes
+      })
+    })
+  })
+})
+
 
 
 // ======================

@@ -1,9 +1,18 @@
-<script setup>
-import { ref, onMounted } from 'vue'
+<script setup>import { ref, onMounted, onUnmounted } from 'vue'
 
 const kegs = ref([])
+const now = ref(new Date())
+
+const showLeakTestStart = ref(false)
+const showLeakTestEnd = ref(false)
+const selectedKeg = ref(null)
+
+const leakTestStartPsi = ref(12.0)
+const leakTestEndPsi = ref('')
 
 const API_BASE = import.meta.env.VITE_API_BASE
+
+let timer = null
 
 async function load() {
   kegs.value = await fetch(`${API_BASE}/api/kegs`)
@@ -19,7 +28,7 @@ async function saveKeg(keg) {
     body: JSON.stringify(keg)
   })
 
-  load()
+  await load()
 }
 
 function toggle(keg, field) {
@@ -31,9 +40,123 @@ function daysSince(dateStr) {
   if (!dateStr) return null
 
   const d = new Date(dateStr)
-  const now = new Date()
+  const current = new Date()
 
-  return Math.floor((now - d) / (1000 * 60 * 60 * 24))
+  return Math.floor((current - d) / (1000 * 60 * 60 * 24))
+}
+
+function formatDuration(minutes) {
+  if (minutes < 60) {
+    return `${minutes}m`
+  }
+
+  const hours = Math.floor(minutes / 60)
+  const mins = minutes % 60
+
+  if (hours < 24) {
+    return mins
+      ? `${hours}h ${mins}m`
+      : `${hours}h`
+  }
+
+  const days = Math.floor(hours / 24)
+  const remainingHours = hours % 24
+
+  return remainingHours
+    ? `${days}d ${remainingHours}h`
+    : `${days}d`
+}
+
+function leakTestElapsed(keg) {
+  if (!keg.leakTestStartedAt) return null
+
+  const start = new Date(keg.leakTestStartedAt)
+  return Math.max(
+    0,
+    Math.floor((now.value - start) / 60000)
+  )
+}
+
+function formatDateTime(dateStr) {
+  if (!dateStr) return ''
+
+  return new Date(dateStr).toLocaleString([], {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+function startLeakTest(keg) {
+  selectedKeg.value = keg
+  leakTestStartPsi.value = 12.0
+  showLeakTestStart.value = true
+}
+
+async function confirmStartLeakTest() {
+  const keg = selectedKeg.value
+
+  if (!keg || leakTestStartPsi.value === '') return
+
+  const response = await fetch(
+    `${API_BASE}/api/kegs/${keg.id}/leak-test/start`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        startPsi: Number(leakTestStartPsi.value)
+      })
+    }
+  )
+
+  if (!response.ok) {
+    alert('Could not start leak test')
+    return
+  }
+
+  showLeakTestStart.value = false
+  selectedKeg.value = null
+
+  await load()
+}
+
+function endLeakTest(keg) {
+  selectedKeg.value = keg
+  leakTestEndPsi.value = ''
+  showLeakTestEnd.value = true
+}
+
+async function confirmEndLeakTest() {
+  const keg = selectedKeg.value
+
+  if (!keg || leakTestEndPsi.value === '') return
+
+  const response = await fetch(
+    `${API_BASE}/api/kegs/${keg.id}/leak-test/end`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        endPsi: Number(leakTestEndPsi.value)
+      })
+    }
+  )
+
+  if (!response.ok) {
+    alert('Could not end leak test')
+    return
+  }
+
+  showLeakTestEnd.value = false
+  selectedKeg.value = null
+
+  await load()
 }
 
 async function setDeepCleanToday(keg) {
@@ -46,7 +169,17 @@ async function setOringChangeToday(keg) {
   await saveKeg(keg)
 }
 
-onMounted(load)
+onMounted(() => {
+  load()
+
+  timer = setInterval(() => {
+    now.value = new Date()
+  }, 1000)
+})
+
+onUnmounted(() => {
+  clearInterval(timer)
+})
 </script>
 
 <template>
@@ -154,12 +287,173 @@ onMounted(load)
     </button>
   </div>
 
+  <div class="status maintenance-status leak-test-status">
+  <strong>Leak Test</strong>
+
+  <template v-if="keg.leakTestStartedAt">
+    <div class="leak-active">
+      <span class="test-badge">TEST IN PROGRESS</span>
+
+      <div>
+        Started:
+        {{ formatDateTime(keg.leakTestStartedAt) }}
+      </div>
+
+      <div>
+        Running:
+        {{ formatDuration(leakTestElapsed(keg)) }}
+      </div>
+
+      <div>
+        Starting pressure:
+        <strong>{{ Number(keg.leakTestStartPsi).toFixed(1) }} PSI</strong>
+      </div>
+
+      <button
+        class="end-test-btn"
+        @click="endLeakTest(keg)"
+      >
+        End Test
+      </button>
+    </div>
+  </template>
+
+  <template v-else>
+    <div v-if="keg.lastLeakTestDate" class="last-leak-test">
+      <div>
+        Last test:
+        {{ formatDateTime(keg.lastLeakTestDate) }}
+      </div>
+
+      <div>
+        {{ Number(keg.lastLeakTestStartPsi).toFixed(1) }}
+        →
+        {{ Number(keg.lastLeakTestEndPsi).toFixed(1) }}
+        PSI
+      </div>
+
+      <div>
+        Change:
+        <strong>
+          {{
+            (Number(keg.lastLeakTestEndPsi) -
+             Number(keg.lastLeakTestStartPsi)).toFixed(1)
+          }}
+          PSI
+        </strong>
+      </div>
+    </div>
+
+    <div v-else class="no-leak-test">
+      No test recorded
+    </div>
+
+    <button @click="startLeakTest(keg)">
+      Start Test
+    </button>
+  </template>
+</div>
+
 </div>
 
       </div>
 
     </div>
+<div v-if="showLeakTestStart" class="modal-overlay">
+  <div class="modal">
+    <h2>Start Leak Test</h2>
 
+    <p>
+      Pressurise the keg and enter the pressure shown on the
+      spunding valve.
+    </p>
+
+    <label>
+      Starting pressure
+      <div class="psi-input">
+        <input
+          v-model="leakTestStartPsi"
+          type="number"
+          step="0.1"
+          min="0"
+        />
+        <span>PSI</span>
+      </div>
+    </label>
+
+    <div class="modal-actions">
+      <button
+        class="cancel-btn"
+        @click="showLeakTestStart = false"
+      >
+        Cancel
+      </button>
+
+      <button
+        class="confirm-btn"
+        @click="confirmStartLeakTest"
+      >
+        Start Test
+      </button>
+    </div>
+  </div>
+</div>
+<div v-if="showLeakTestEnd" class="modal-overlay">
+  <div class="modal">
+    <h2>End Leak Test</h2>
+
+    <div class="test-summary">
+      <div>
+        <span>Duration</span>
+        <strong>
+          {{ formatDuration(leakTestElapsed(selectedKeg)) }}
+        </strong>
+      </div>
+
+      <div>
+        <span>Starting pressure</span>
+        <strong>
+          {{ Number(selectedKeg.leakTestStartPsi).toFixed(1) }} PSI
+        </strong>
+      </div>
+    </div>
+
+    <label>
+      Final pressure
+      <div class="psi-input">
+        <input
+          v-model="leakTestEndPsi"
+          type="number"
+          step="0.1"
+          min="0"
+          placeholder="12.0"
+        />
+        <span>PSI</span>
+      </div>
+    </label>
+
+    <p class="pressure-note">
+      Enter the pressure currently shown on the spunding valve.
+      The app will calculate the pressure change.
+    </p>
+
+    <div class="modal-actions">
+      <button
+        class="cancel-btn"
+        @click="showLeakTestEnd = false"
+      >
+        Cancel
+      </button>
+
+      <button
+        class="confirm-btn"
+        @click="confirmEndLeakTest"
+      >
+        End Test
+      </button>
+    </div>
+  </div>
+</div>
   </div>
 </template>
 
@@ -410,6 +704,147 @@ h1 {
 
 .maintenance-status button:active {
   transform: translateY(0);
+}
+
+.leak-test-status {
+  background: #f3f0ff;
+}
+
+.test-badge {
+  display: inline-block;
+  margin-bottom: 7px;
+  padding: 4px 7px;
+  border-radius: 6px;
+  background: #d1c4e9;
+  color: #4527a0;
+  font-size: .7rem;
+  font-weight: bold;
+}
+
+.leak-active,
+.last-leak-test {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: .82rem;
+}
+
+.no-leak-test {
+  font-size: .82rem;
+  opacity: .65;
+}
+
+.end-test-btn {
+  background: #d1c4e9 !important;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal {
+  width: 100%;
+  max-width: 420px;
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, .2);
+  box-sizing: border-box;
+}
+
+.modal h2 {
+  margin: 0 0 12px;
+}
+
+.modal p {
+  margin: 0 0 20px;
+  line-height: 1.5;
+  color: #555;
+}
+
+.modal label {
+  display: block;
+  font-weight: bold;
+}
+
+.psi-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.psi-input input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.psi-input span {
+  font-weight: bold;
+}
+
+.test-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 15px 0 20px;
+}
+
+.test-summary div {
+  background: #f5f5f5;
+  padding: 12px;
+  border-radius: 10px;
+}
+
+.test-summary span {
+  display: block;
+  font-size: .75rem;
+  opacity: .65;
+  margin-bottom: 4px;
+}
+
+.test-summary strong {
+  font-size: .95rem;
+}
+
+.pressure-note {
+  margin-top: 12px !important;
+  margin-bottom: 0 !important;
+  font-size: .8rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.modal-actions button {
+  flex: 1;
+  border: none;
+  border-radius: 9px;
+  padding: 11px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.cancel-btn {
+  background: #eee;
+}
+
+.confirm-btn {
+  background: #c8e6c9;
 }
 
 /* =========================
