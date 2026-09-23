@@ -88,44 +88,42 @@ onMounted(load)
           No beer assigned
         </div>
 
-        <div class="status-grid">
+<div class="status-grid">
 
-          <button
-            class="status dirty"
-            :class="{ active: keg.dirty }"
-            @click="toggle(keg, 'dirty')"
-          >
-            Dirty
-          </button>
+  <button
+    class="status dirty"
+    :class="{ active: keg.dirty }"
+    @click="toggle(keg, 'dirty')"
+  >
+    Dirty
+  </button>
 
-          <button
-            class="status clean"
-            :class="{ active: keg.clean }"
-            @click="toggle(keg, 'clean')"
-          >
-            Clean
-          </button>
+  <button
+    class="status clean"
+    :class="{ active: keg.clean }"
+    @click="toggle(keg, 'clean')"
+  >
+    Clean
+  </button>
 
-          <button
-            class="status sanitised"
-            :class="{ active: keg.sanitised }"
-            @click="toggle(keg, 'sanitised')"
-          >
-            Sanitised
-          </button>
+  <button
+    class="status sanitised"
+    :class="{ active: keg.sanitised }"
+    @click="toggle(keg, 'sanitised')"
+  >
+    Sanitised
+  </button>
 
-          <button
-            class="status pressurised"
-            :class="{ active: keg.pressurised }"
-            @click="toggle(keg, 'pressurised')"
-          >
-            Pressurised
-          </button>
+  <button
+    class="status pressurised"
+    :class="{ active: keg.pressurised }"
+    @click="toggle(keg, 'pressurised')"
+  >
+    Pressurised
+  </button>
 
-<div class="maintenance">
-
-  <div class="maintenance-item">
-    <strong>Deep Clean:</strong>
+  <div class="status maintenance-status">
+    <strong>Deep Clean</strong>
 
     <div v-if="keg.lastDeepCleanDate">
       {{ daysSince(keg.lastDeepCleanDate) }} days ago
@@ -140,8 +138,8 @@ onMounted(load)
     </button>
   </div>
 
-  <div class="maintenance-item">
-    <strong>O-Rings Changed:</strong>
+  <div class="status maintenance-status">
+    <strong>O-Rings Changed</strong>
 
     <div v-if="keg.lastOringChangeDate">
       {{ daysSince(keg.lastOringChangeDate) }} days ago
@@ -157,7 +155,6 @@ onMounted(load)
   </div>
 
 </div>
-        </div>
 
       </div>
 
@@ -358,23 +355,10 @@ h1 {
   background: #d1c4e9;
 }
 
-/* =========================
-   MAINTENANCE
-   ========================= */
-
-.maintenance {
-  display: grid !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-
-  width: 100%;
-  margin-top: 12px;
-  gap: 10px;
-
-  box-sizing: border-box;
-}
-
-.maintenance-item {
-  display: block !important;
+.maintenance-status {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between;
 
   min-width: 0;
   box-sizing: border-box;
@@ -382,17 +366,20 @@ h1 {
   padding: 12px;
 
   background: #fafafa;
-  border-radius: 10px;
+
+  border-radius: 12px;
 
   font-size: 0.9rem;
+
+  opacity: 1;
 }
 
-.maintenance-item strong {
+.maintenance-status strong {
   display: block;
   margin-bottom: 5px;
 }
 
-.maintenance-item button {
+.maintenance-status button {
   display: block !important;
 
   width: 100%;
@@ -416,12 +403,12 @@ h1 {
     transform 0.15s ease;
 }
 
-.maintenance-item button:hover {
+.maintenance-status button:hover {
   background: #ffe082;
   transform: translateY(-1px);
 }
 
-.maintenance-item button:active {
+.maintenance-status button:active {
   transform: translateY(0);
 }
 
@@ -494,15 +481,6 @@ h1 {
   .status {
     padding: 12px 8px;
     font-size: 0.9rem;
-  }
-
-  .maintenance {
-    grid-template-columns: 1fr !important;
-    gap: 8px;
-  }
-
-  .maintenance-item {
-    padding: 11px;
   }
 
 }
