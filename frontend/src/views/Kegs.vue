@@ -189,17 +189,35 @@ h1 {
    ========================= */
 
 .keg-grid {
-  display: grid;
+  display: grid !important;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 20px;
+  width: 100%;
 }
 
+/* =========================
+   KEG CARD
+   ========================= */
+
+/*
+  Important:
+  The main app has a global .keg-card rule which is
+  affecting this page. Explicitly force each keg card
+  to be a normal vertical container.
+*/
+
 .keg-card {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+
+  width: 100%;
   min-width: 0;
+  box-sizing: border-box;
+
   background: white;
   border-radius: 16px;
   padding: 20px;
-  box-sizing: border-box;
 
   box-shadow:
     0 4px 12px rgba(0, 0, 0, 0.08);
@@ -210,12 +228,15 @@ h1 {
    ========================= */
 
 .keg-header {
-  display: flex;
+  display: flex !important;
+  flex-direction: row !important;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
 
-  margin-bottom: 15px;
+  width: 100%;
+  margin: 0 0 15px;
+  gap: 12px;
+  box-sizing: border-box;
 }
 
 .keg-header h2 {
@@ -243,7 +264,12 @@ h1 {
    ========================= */
 
 .beer-info {
-  margin-bottom: 18px;
+  display: block !important;
+
+  width: 100%;
+  margin: 0 0 18px;
+  box-sizing: border-box;
+
   line-height: 1.4;
 }
 
@@ -253,8 +279,13 @@ h1 {
 }
 
 .empty {
+  display: block !important;
+
+  width: 100%;
+  margin: 0 0 18px;
+  box-sizing: border-box;
+
   opacity: 0.6;
-  margin-bottom: 18px;
 }
 
 /* =========================
@@ -262,14 +293,21 @@ h1 {
    ========================= */
 
 .status-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+
+  width: 100%;
   gap: 12px;
+
+  box-sizing: border-box;
 }
 
 .status {
+  display: block !important;
+
   width: 100%;
   min-width: 0;
+  box-sizing: border-box;
 
   border: none;
   border-radius: 12px;
@@ -299,7 +337,9 @@ h1 {
 
 .status.active {
   opacity: 1;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 .dirty {
@@ -323,18 +363,23 @@ h1 {
    ========================= */
 
 .maintenance {
-  margin-top: 12px;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
 
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+  margin-top: 12px;
   gap: 10px;
+
+  box-sizing: border-box;
 }
 
 .maintenance-item {
+  display: block !important;
+
   min-width: 0;
+  box-sizing: border-box;
 
   padding: 12px;
-  box-sizing: border-box;
 
   background: #fafafa;
   border-radius: 10px;
@@ -348,7 +393,10 @@ h1 {
 }
 
 .maintenance-item button {
+  display: block !important;
+
   width: 100%;
+  box-sizing: border-box;
 
   margin-top: 9px;
   padding: 8px 10px;
@@ -381,7 +429,7 @@ h1 {
    TABLET
    ========================= */
 
-@media (max-width: 800px) {
+@media (max-width: 900px) {
 
   .container {
     padding: 20px;
@@ -394,19 +442,6 @@ h1 {
 
   .keg-card {
     padding: 16px;
-  }
-
-  .keg-header {
-    align-items: flex-start;
-  }
-
-  .keg-header h2 {
-    font-size: 1.25rem;
-  }
-
-  .assigned {
-    font-size: 0.8rem;
-    padding: 5px 8px;
   }
 
 }
@@ -440,7 +475,6 @@ h1 {
   .keg-header {
     flex-wrap: wrap;
     align-items: center;
-    margin-bottom: 12px;
   }
 
   .keg-header h2 {
@@ -449,25 +483,21 @@ h1 {
 
   .assigned {
     font-size: 0.78rem;
-  }
-
-  .beer-info,
-  .empty {
-    margin-bottom: 15px;
+    padding: 5px 8px;
   }
 
   .status-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 8px;
   }
 
   .status {
     padding: 12px 8px;
     font-size: 0.9rem;
-    border-radius: 10px;
   }
 
   .maintenance {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
     gap: 8px;
   }
 
@@ -495,14 +525,8 @@ h1 {
     font-size: 1.45rem;
   }
 
-  .keg-header {
-    align-items: flex-start;
-  }
-
   .assigned {
-    width: 100%;
-    text-align: center;
-    box-sizing: border-box;
+    width: auto;
   }
 
   .status {
