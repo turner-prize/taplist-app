@@ -1,5 +1,8 @@
-<script setup>import { ref, onMounted, onUnmounted } from 'vue'
+<script setup>
+import { ref, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const kegs = ref([])
 const now = ref(new Date())
 
@@ -184,6 +187,9 @@ onUnmounted(() => {
 
 <template>
   <div class="container">
+    <button class="back-admin-btn" @click="router.push('/admin')">
+    ← Back to Admin
+  </button>
 
     <h1>🍺 Keg Lifecycle</h1>
 
@@ -707,6 +713,7 @@ h1 {
 }
 
 .leak-test-status {
+  grid-column: 1 / -1;
   background: #f3f0ff;
 }
 
@@ -741,22 +748,29 @@ h1 {
 .modal-overlay {
   position: fixed;
   inset: 0;
+  width: 100vw;
+  height: 100vh;
   background: rgba(0, 0, 0, .45);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   padding: 20px;
+  box-sizing: border-box;
 }
 
 .modal {
   width: 100%;
-  max-width: 420px;
+  max-width: 300px;
   background: white;
   border-radius: 16px;
   padding: 24px;
   box-shadow: 0 15px 40px rgba(0, 0, 0, .2);
   box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 
 .modal h2 {
@@ -779,10 +793,12 @@ h1 {
   align-items: center;
   gap: 8px;
   margin-top: 8px;
+  width: 100%;
 }
 
 .psi-input input {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   box-sizing: border-box;
   padding: 12px;
   border: 1px solid #ccc;
@@ -845,6 +861,24 @@ h1 {
 
 .confirm-btn {
   background: #c8e6c9;
+}
+
+.back-admin-btn {
+  border: none;
+  background: #eee;
+  color: #333;
+  padding: 9px 14px;
+  border-radius: 8px;
+  font-size: .9rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin-bottom: 15px;
+  transition: background .15s ease, transform .15s ease;
+}
+
+.back-admin-btn:hover {
+  background: #ddd;
+  transform: translateX(-2px);
 }
 
 /* =========================
